@@ -89,6 +89,9 @@ type alertMetrics struct {
 	alertmanagersDiscovered prometheus.GaugeFunc
 }
 
+//used for alert api
+var AlertMessages string;
+
 func newAlertMetrics(r prometheus.Registerer, queueCap int, queueLen, alertmanagersDiscovered func() float64) *alertMetrics {
 	m := &alertMetrics{
 		latency: prometheus.NewSummaryVec(prometheus.SummaryOpts{
@@ -252,6 +255,15 @@ func (n *Notifier) Run() {
 		case <-n.more:
 		}
 		alerts := n.nextBatch()
+
+		// add alert message
+                b, err := json.Marshal(alerts)
+                if err != nil {
+                        AlertMessages = fmt.Sprintf("Encoding alerts failed: %s", err)
+                } else {
+                        AlertMessages = string(b)
+                }
+
 
 		if !n.sendAll(alerts...) {
 			n.metrics.dropped.Add(float64(len(alerts)))

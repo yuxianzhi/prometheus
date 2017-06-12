@@ -34,6 +34,7 @@ import (
 	"github.com/prometheus/prometheus/storage/local"
 	"github.com/prometheus/prometheus/storage/metric"
 	"github.com/prometheus/prometheus/util/httputil"
+	"github.com/prometheus/prometheus/notifier"
 )
 
 type status string
@@ -147,6 +148,7 @@ func (api *API) Register(r *route.Router) {
 
 	r.Get("/targets", instr("targets", api.targets))
 	r.Get("/alertmanagers", instr("alertmanagers", api.alertmanagers))
+        r.Get("/alerts", instr("alerts", api.alerts))
 }
 
 type queryData struct {
@@ -435,6 +437,13 @@ func (api *API) alertmanagers(r *http.Request) (interface{}, *apiError) {
 
 	return ams, nil
 }
+
+
+// Alerts API
+func (api *API) alerts(r *http.Request) (interface{}, *apiError) {
+        return notifier.AlertMessages, nil
+}
+
 
 func respond(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
