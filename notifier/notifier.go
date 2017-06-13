@@ -90,7 +90,7 @@ type alertMetrics struct {
 }
 
 //used for alert api
-var AlertMessages string;
+var AlertMessages model.Alerts;
 
 func newAlertMetrics(r prometheus.Registerer, queueCap int, queueLen, alertmanagersDiscovered func() float64) *alertMetrics {
 	m := &alertMetrics{
@@ -254,19 +254,13 @@ func (n *Notifier) Run() {
 			return
 		case <-n.more:
 		}
-		alerts := n.nextBatch()
 
 		// add alert message
-                b, err := json.Marshal(alerts)
-                if err != nil {
-                        AlertMessages = fmt.Sprintf("Encoding alerts failed: %s", err)
-                } else {
-                        AlertMessages = string(b)
-                }
+                AlertMessages = n.nextBatch()
 
 
-		if !n.sendAll(alerts...) {
-			n.metrics.dropped.Add(float64(len(alerts)))
+		if !n.sendAll(AlertMessages...) {
+			n.metrics.dropped.Add(float64(len(AlertMessages)))
 		}
 		// If the queue still has items left, kick off the next iteration.
 		if n.queueLen() > 0 {
